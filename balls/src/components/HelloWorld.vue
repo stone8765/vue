@@ -1,37 +1,56 @@
 <template>
   <div class="balls-container">
     <div class="balls-form">
-      <h1>双色球摇号</h1>
-      <label>红球个数：</label>
-      <input type="text" class v-model="redCount" />
-      <label>篮球个数：</label>
-      <input type="text" v-model="blueCount" />
+      <h1 @click="showSettings">双色球摇号</h1>
+      <div class="settings" :class="{'active': settingIsShow}">
+        <div class="group">
+          <label>红球个数：</label>
+          <input type="text" v-model="redCount" />
+          <button @click="increaseBallCount('red', 1)">+</button>
+          <button @click="increaseBallCount('red', -1)">-</button>
+        </div>
+        <div class="group">
+          <label>篮球个数：</label>
+          <input type="text" v-model="blueCount" />
+          <button @click="increaseBallCount('blue', 1)">+</button>
+          <button @click="increaseBallCount('blue', -1)">-</button>
+        </div>
+      </div>
     </div>
     <div class="balls-result" @click="startOrStop();">
       <span
         class="counter red"
-        v-for="(item,$index) in balls.reds"
+        v-for="(item, $index) in balls.reds"
         :key="$index"
         v-text="formatNum(item)"
       ></span>
       <span
         class="counter blue"
-        v-for="(item,$index) in balls.blues"
-        :key="$index+balls.reds.length"
+        v-for="(item, $index) in balls.blues"
+        :key="$index + balls.reds.length"
         v-text="formatNum(item)"
       ></span>
     </div>
     <div class="balls-results">
-      <span v-for="(item,$index) in results" :key="$index" v-text="formatBalls(item)"></span>
+      <mini-ball v-for="(item,$index) in results" :key="$index" :ball="item"></mini-ball>
+    </div>
+    <div class="footer" :class="{'hidden': results && results.length > 0 }">
+      <span>点击球停止滚动, 再次点击开始</span>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator'
+import MiniBall from './MiniBall.vue'
 import DBBalls from './DBBalls'
-@Component
+@Component({
+  components: {
+    MiniBall
+  }
+})
 export default class HelloWorld extends Vue {
+  private settingIsShow: boolean = false
   private redCount: number = 6
   private blueCount: number = 1
   private balls: DBBalls = { reds: [], blues: [] }
@@ -40,6 +59,26 @@ export default class HelloWorld extends Vue {
   private results: Array<DBBalls> = []
   mounted() {
     this.startOrStop()
+  }
+
+  showSettings() {
+    this.settingIsShow = !this.settingIsShow
+  }
+
+  increaseBallCount(type: string, count: number) {
+    if (type === 'red') {
+      let newCount = this.redCount + count
+      if (newCount < 6 || newCount > 20) {
+        return
+      }
+      this.redCount = newCount
+    } else if (type === 'blue') {
+      let newCount = this.blueCount + count
+      if (newCount < 1 || newCount > 16) {
+        return
+      }
+      this.blueCount = newCount
+    }
   }
 
   startOrStop() {
@@ -79,8 +118,20 @@ export default class HelloWorld extends Vue {
 <style scoped lang="scss">
 .balls-container {
   text-align: center;
+  padding-bottom: 50px;
 
   .balls-form {
+    .settings {
+      display: none;
+      &.active {
+        display: block;
+      }
+    }
+
+    .group {
+      vertical-align: middle;
+    }
+
     label {
       margin-left: 8px;
       font-size: 24px;
@@ -95,6 +146,29 @@ export default class HelloWorld extends Vue {
       font-size: 24px;
       line-height: 25px;
       color: #555;
+      vertical-align: middle;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      border-radius: 4px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+      -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+      -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+      transition: border linear 0.2s, box-shadow linear 0.2s;
+    }
+
+    button {
+      background-color: white;
+      width: 50px;
+      height: 33px;
+      font-size: 24px;
+      line-height: 25px;
+      margin-left: 2px;
+      margin-bottom: 10px;
       vertical-align: middle;
       -webkit-border-radius: 4px;
       -moz-border-radius: 4px;
@@ -134,6 +208,17 @@ export default class HelloWorld extends Vue {
     span {
       display: block;
       font-size: 1.5rem;
+    }
+  }
+
+  .footer {
+    position: relative;
+    color: gray;
+    text-align: center;
+    margin-top: 20px;
+
+    &.hidden {
+      display: none;
     }
   }
 }
