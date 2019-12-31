@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="node_modules/vue/dist/vue.js"></script>
+    <style>
+        .active {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h2 v-text="title"></h2>
+        <p>数量：{{total}}</p>
+        <course-list :courses="courses"></course-list>
+        <course-add @add-course="addCourse"></course-add>
+    </div>
+    <script>
+        Vue.component('course-list', {
+            data() {
+                return {
+                    selectedCourse: ''
+                }
+            },
+            props: {
+                courses: {
+                    type: Array,
+                    default: []
+                }
+            },
+            methods: {
+                onclick(item) {
+                    this.selectedCourse = item;
+                }
+            },
+            template: `
+            <div>
+                <ul>
+                    <li v-for="item in courses" :key="item" 
+                        :class= "{active:(selectedCourse===item)}"
+                        @click="onclick(item)">
+                        {{ item }}
+                    </li>
+                </ul>
+            </div>
+            `
+        });
+
+        Vue.component('course-add', {
+            data() {
+                return {
+                    course: ''
+                }
+            },
+            methods: {
+                addCourse() {
+                    this.$emit('add-course', this.course);
+                    this.course = '';
+                },
+            },
+            template: `
+                <div>
+                    <input v-model="course" type="text" v-on:keydown.enter="addCourse" />
+                </div>
+            `
+        })
+
+        const app = new Vue({
+            el: '#app',
+            data: {
+                title: '购物车',
+                courses: ['萝卜', '白菜']
+            },
+            computed: {
+                total() {
+                    console.log('computed total');
+                    return this.courses.length;
+                }
+            },
+            methods: {
+                addCourse(course) {
+                    this.courses.push(course);
+                }
+            }
+        });
+
+    </script>
+</body>
+
+</html>

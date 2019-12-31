@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="node_modules/vue/dist/vue.js"></script>
+    <style>
+        .active {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h2 v-text="title"></h2>
+        <p>数量：{{total}}</p>
+        <p>数量：{{totalCount}}</p>
+        <p v-if="courses.length===0">没有数据</p>
+        <ul>
+            <li v-for="item in courses" :key="item" :class="{active:(selectedCourse===item)}" @click="onclick(item)">
+                {{ item }}
+            </li>
+        </ul>
+        <input v-model="course" type="text" v-on:keydown.enter="addCourse" />
+    </div>
+    <script>
+        const app = new Vue({
+            el: '#app',
+            data: {
+                title: '购物车',
+                courses: ['萝卜', '白菜'],
+                course: '',
+                selectedCourse: ''
+            },
+            computed: {
+                total() {
+                    console.log('computed total');
+                    return this.courses.length;
+                }
+            },
+            methods: {
+                addCourse() {
+                    this.courses.push(this.course);
+                },
+                onclick(item) {
+                    this.selectedCourse = item;
+                }
+            },
+            watch: {
+                courses: {
+                    immediate: true,
+                    handler(newvalue, oldvalue) {
+                        console.log('watch courses');
+                        this.totalCount = newvalue.length;
+                    }
+                }
+            },
+            beforeCreate() {
+                console.log('beforeCreate');
+            },
+            created() {
+                console.log('created');
+            }
+        });
+
+    </script>
+</body>
+
+</html>

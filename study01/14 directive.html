@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="node_modules/vue/dist/vue.js"></script>
+    <script src="node_modules/vue/dist/vue.js"></script>
+    <link src="node_modules/css/animate.css">
+    <style>
+        .active {
+            background-color: #ddd;
+        }
+
+        .message-box {
+            padding: 10px 20px;
+        }
+
+        .message-box.success {
+            background: #4fc08d;
+            border: 1px solid #42b983;
+        }
+
+        .message-box.warning {
+            background: #ff6666;
+            border: 1px solid #ff6666;
+        }
+
+        .message-box-close {
+            float: right;
+            cursor: pointer;
+        }
+
+        .fade-enter-active,
+        .fade-leave-active {
+            transition: opacity .5s;
+        }
+
+        .fade-enter,
+        .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <message ref="successMsg" class="success">
+            <template v-slot:title>恭喜</template>
+            <template>新增课程成功！</template>
+        </message>
+        <message ref="warningMsg" class="warning">
+            <template v-slot:title>警告</template>
+            <template>请输入课程名称！</template>
+        </message>
+        <h2 v-text="title"></h2>
+        <div class="toolbar">
+            <button @click="$bus.$emit('message-close')">清除所有消息</button></div>
+        <p>数量：{{total}}</p>
+        <p><input type="text" v-model.number="price">
+            <button @click="batchUpdate">update price</button></p>
+        <course-list :courses="courses"></course-list>
+        <course-add v-model="course" @add-course="addCourse"></course-add>
+    </div>
+    <script>
+        Vue.prototype.$bus = new Vue();
+
+        Vue.component('message', {
+            data() {
+                return {
+                    isShow: false
+                }
+            },
+            methods: {
+                toggle() {
+                    this.isShow = !this.isShow;
+                },
+                show() {
+                    this.isShow = true;
+                },
+                hide() {
+                    this.isShow = false;
+                }
+            },
+            template: `
+                <transition name="fade" 
+                    enter-active-class="animated bounceIn"
+                    leave-active-class="animated bounceOut" >
+                    <div class="message-box" v-if="isShow">
+                        <strong><slot name="title"></slot></strong>
+                        <slot></slot>
+                        <span class="message-box-close"
+                        @click="hide">X</span>
+                    </div>
+                </transition>
+            `,
+            mounted() {
+                this.$bus.$on('message-close', () => {
+                    this.hide();
+                });
+            }
+        });
+
+        Vue.filter('currency', function (value, currency) {
+            if (currency === 'CNY') {
+                return '￥' + value;
+            } else {
+                return '$' + value;
+            }
+        })
+
+        Vue.component('course-list', {
+            data() {
+                return {
+                    selectedCourse: ''
+                }
+            },
+            props: {
+                courses: {
+                    type: Array,
+                    default: []
+                }
+            },
+            methods: {
+                onclick(item) {
+                    this.selectedCourse = item;
+                }
+            },
+            template: `
+            <div>
+                <ul>
+                    <transition-group name="fade" >
+                        <li v-for="item in courses" :key="item.name" 
+                            :class= "{active:(selectedCourse===item)}"
+                            @click="onclick(item)">
+                            {{ item.name }} - {{ item.price | currency('USD') }}
+                        </li>
+                    </transition>
+                </ul>
+            </div>
+            `
+        });
+
+        Vue.directive('focus',{
+            inserted(el){
+                el.focus();
+            }
+        })
+
+        Vue.component('course-add', {
+            props: ['course'],
+            methods: {
+                addCourse() {
+                    this.$emit('add-course', this.course);
+                },
+                onInput(e) {
+                    this.$emit('input', e.target.value);
+                }
+            },
+            template: `
+                <div>
+                    <input :value="course" type="text" 
+                    @input="onInput"
+                    v-focus
+                    @keydown.enter="addCourse" ref="txtCourse" />
+                </div>
+            `,
+            mounted() {
+                // setTimeout(() => {
+                //     this.$refs.txtCourse.focus();
+                // }, 100);
+            }
+        })
+
+        const app = new Vue({
+            el: '#app',
+            data: {
+                title: '购物车',
+                show: false,
+                showWarn: false,
+                price: 0,
+                course: '',
+                courses: [{ name: '萝卜' }, { name: '白菜' }]
+            },
+            computed: {
+                total() {
+                    console.log('computed total');
+                    return this.courses.length;
+                }
+            },
+            methods: {
+                addCourse() {
+                    this.$bus.$emit('message-close');
+                    if (!this.course) {
+                        this.$refs.warningMsg.show();
+                        return;
+                    }
+                    this.$refs.successMsg.show();
+                    this.courses.push({ name: this.course, price: 0 });
+
+                },
+                batchUpdate() {
+                    this.courses.forEach(e => {
+                        //Vue.set(e, 'price', this.price);
+                        this.$set(e, 'price', this.price);
+                    });
+                }
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>

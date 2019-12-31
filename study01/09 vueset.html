@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="node_modules/vue/dist/vue.js"></script>
+    <style>
+        .active {
+            background-color: #ddd;
+        }
+
+        .message-box {
+            padding: 10px 20px;
+            background: #4fc08d;
+            border: 1px solid #42b983;
+        }
+
+        .message-box-close {
+            float: right;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <message :show.sync="show">
+            <template v-slot:title>恭喜</template>
+            <template>新增课程成功！</template>
+        </message>
+        <h2 v-text="title"></h2>
+        <p>数量：{{total}}</p>
+        <p><input type="text" v-model.number="price">
+            <button @click="batchUpdate">update price</button></p>
+        <course-list :courses="courses"></course-list>
+        <course-add v-model="course" @add-course="addCourse"></course-add>
+    </div>
+    <script>
+        Vue.component('message', {
+            props: ['show'],
+            template: `
+                <div class="message-box" v-if="show">
+                    <strong><slot name="title"></slot></strong>
+                    <slot></slot>
+                    <span class="message-box-close"
+                    @click="$emit('update:show', false)">X</span>
+                </div>
+            `
+        });
+
+        Vue.component('course-list', {
+            data() {
+                return {
+                    selectedCourse: ''
+                }
+            },
+            props: {
+                courses: {
+                    type: Array,
+                    default: []
+                }
+            },
+            methods: {
+                onclick(item) {
+                    this.selectedCourse = item;
+                }
+            },
+            template: `
+            <div>
+                <ul>
+                    <li v-for="item in courses" :key="item.name" 
+                        :class= "{active:(selectedCourse===item)}"
+                        @click="onclick(item)">
+                        {{ item.name }} - {{ item.price }}
+                    </li>
+                </ul>
+            </div>
+            `
+        });
+
+        Vue.component('course-add', {
+            props: ['course'],
+            methods: {
+                addCourse() {
+                    this.$emit('add-course', this.course);
+                },
+                onInput(e) {
+                    this.$emit('input', e.target.value);
+                }
+            },
+            template: `
+                <div>
+                    <input :value="course" type="text" 
+                    @input="onInput"
+                    @keydown.enter="addCourse" />
+                </div>
+            `
+        })
+
+        const app = new Vue({
+            el: '#app',
+            data: {
+                title: '购物车',
+                show: false,
+                price: 0,
+                course: '',
+                courses: [{ name: '萝卜' }, { name: '白菜' }]
+            },
+            computed: {
+                total() {
+                    console.log('computed total');
+                    return this.courses.length;
+                }
+            },
+            methods: {
+                addCourse(corse) {
+                    this.courses.push({ name: this.course, price: 0 });
+                    this.show = true;
+                },
+                batchUpdate() {
+                    this.courses.forEach(e => {
+                        //Vue.set(e, 'price', this.price);
+                        this.$set(e, 'price', this.price);
+                    });
+                }
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>

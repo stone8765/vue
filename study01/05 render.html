@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="node_modules/vue/dist/vue.js"></script>
+    <style>
+        .active {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+    </div>
+    <script>
+        const app = new Vue({
+            el: '#app',
+            data: {
+                title: '购物车',
+                courses: ['萝卜', '白菜'],
+                course: '',
+                selectedCourse: ''
+            },
+            computed: {
+                total() {
+                    console.log('computed total');
+                    return this.courses.length;
+                }
+            },
+            methods: {
+                addCourse() {
+                    this.courses.push(this.course);
+                },
+                onclick(item) {
+                    this.selectedCourse = item;
+                }
+            },
+            watch: {
+                courses: {
+                    immediate: true,
+                    handler(newvalue, oldvalue) {
+                        console.log('watch courses');
+                        this.totalCount = newvalue.length;
+                    }
+                }
+            },
+            beforeCreate() {
+                console.log('beforeCreate');
+            },
+            created() {
+                console.log(this);
+                console.log('created');
+            },
+            beforeMount() {
+                console.log('beforeMount')
+            },
+            mounted() {
+                console.log('mounted ' + this.$el)
+            },
+            beforeUpdate() {
+                console.log('beforeUpdate')
+            },
+            updated() {
+                console.log('updated')
+            },
+
+            render() {
+                with (this) {
+                    return _c('div', { attrs: { "id": "app" } }, [_c('h2', { domProps: { "textContent": _s(title) } }), _v(" "), _c('p', [_v("数量：" + _s(total))]), _v(" "), _c('p', [_v("数量：" + _s(totalCount))]), _v(" "), (courses.length === 0) ? _c('p', [_v("没有数据")]) : _e(), _v(" "), _c('ul', _l((courses), function (item) { return _c('li', { key: item, class: { active: (selectedCourse === item) }, on: { "click": function ($event) { return onclick(item) } } }, [_v("\n                " + _s(item) + "\n            ")]) }), 0), _v(" "), _c('input', { directives: [{ name: "model", rawName: "v-model", value: (course), expression: "course" }], attrs: { "type": "text" }, domProps: { "value": (course) }, on: { "keydown": function ($event) { if (!$event.type.indexOf('key') && _k($event.keyCode, "enter", 13, $event.key, "Enter")) return null; return addCourse($event) }, "input": function ($event) { if ($event.target.composing) return; course = $event.target.value } } })])
+                }
+            }
+        });
+
+    </script>
+</body>
+
+</html>
